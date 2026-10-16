@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f4f6ef">
+  <title>Stillroom | Personal AI</title>
+  <link rel="stylesheet" href="{{ url_for('static', path='/style.css') }}">
+  <script src="{{ url_for('static', path='/app.js') }}" defer></script>
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <a class="brand" href="/" aria-label="Stillroom home">
+        <span class="brand-mark" aria-hidden="true">S</span>
+        <span><strong>stillroom</strong><small>your private desk</small></span>
+      </a>
+
+      <div class="nav-caption">WORKSPACE</div>
+      <nav class="primary-nav" aria-label="Workspace">
+        <button class="nav-link is-active" type="button" data-view="chat" aria-pressed="true">
+          <span class="nav-symbol" aria-hidden="true">✳</span><span>Assistant</span>
+        </button>
+        <button class="nav-link" type="button" data-view="tasks" aria-pressed="false">
+          <span class="nav-symbol" aria-hidden="true">☷</span><span>Tasks</span>
+        </button>
+        <button class="nav-link" type="button" data-view="memories" aria-pressed="false">
+          <span class="nav-symbol" aria-hidden="true">⌑</span><span>Memory</span>
+        </button>
+        <button class="nav-link" type="button" data-view="documents" aria-pressed="false">
+          <span class="nav-symbol" aria-hidden="true">▤</span><span>Documents</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-bottom">
+        <div class="model-status">
+          <span class="status-dot" id="sidebarStatusDot"></span>
+          <span><strong id="sidebarStatusText">Checking model</strong><small>{{ model_name }} · Ollama</small></span>
+        </div>
+        {% if auth_required %}
+        <form method="post" action="{{ url_for('logout') }}">
+          <button class="sign-out" type="submit">Sign out <span aria-hidden="true">↗</span></button>
+        </form>
+        {% endif %}
+        <div class="privacy-note"><span aria-hidden="true">●</span> Local by default</div>
+      </div>
+    </aside>
+
+    <main class="main-area">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">A QUIETER KIND OF PRODUCTIVITY</p>
+          <p class="today-label" id="todayLabel"></p>
+        </div>
+        <div class="connection-pill" id="connectionPill" aria-live="polite">
+          <span class="status-dot"></span><span id="connectionText">Checking Ollama</span>
+        </div>
+      </header>
+
+      <section class="view-panel is-visible" id="view-chat" aria-labelledby="chatHeading">
+        <div class="section-intro">
+          <div class="section-kicker">YOUR THINKING SPACE <span>01</span></div>
+          <h1 id="chatHeading">A little room<br>to think clearly.</h1>
+          <p>Ask a question, work through an idea, or make a plan.</p>
+        </div>
+        <div class="chat-layout">
+          <div class="chat-column">
+            <div class="conversation" id="conversation" aria-live="polite" aria-label="Conversation">
+              <article class="message assistant-message">
+                <div class="message-mark" aria-hidden="true">S</div>
+                <div class="message-body">
+                  <div class="message-meta">STILLROOM <span>·</span> READY WHEN YOU ARE</div>
+                  <p>Hi. What would you like to work through?</p>
+                </div>
+              </article>
+            </div>
+            <form class="chat-composer" id="chatForm">
+              <label class="visually-hidden" for="chatInput">Your message</label>
+              <textarea id="chatInput" name="message" rows="2" maxlength="12000" placeholder="Write a thought, question, or plan..." required></textarea>
+              <div class="composer-footer">
+                <span>Private conversation · <kbd>Enter</kbd> to send</span>
+                <button class="primary-button send-button" type="submit">Send <span aria-hidden="true">↗</span></button>
+              </div>
+            </form>
+          </div>
+          <aside class="workspace-pulse" aria-label="Workspace overview">
+            <div class="pulse-heading"><span class="pulse-spark" aria-hidden="true">✳</span><span>At a glance</span></div>
+            <div class="pulse-stat"><span>Open tasks</span><strong id="openTaskCount">—</strong></div>
+            <div class="pulse-stat"><span>Saved memories</span><strong id="memoryCount">—</strong></div>
+            <div class="pulse-divider"></div>
+            <p class="pulse-note">Your notes and plans stay in your local database.</p>
+            <button class="text-link" type="button" data-open-view="tasks">View tasks <span aria-hidden="true">→</span></button>
+          </aside>
+        </div>
+      </section>
+
+      <section class="view-panel" id="view-tasks" aria-labelledby="tasksHeading" hidden>
+        <div class="section-intro compact-intro">
+          <div class="section-kicker">MAKE SPACE FOR WHAT MATTERS <span>02</span></div>
+          <h1 id="tasksHeading">Your tasks.</h1>
+          <p>Small next steps, kept in one place.</p>
+        </div>
+        <form class="entry-form task-form" id="taskForm">
+          <label class="visually-hidden" for="taskTitle">Task title</label>
+          <input id="taskTitle" name="title" maxlength="240" placeholder="What needs doing?" required>
+          <label class="visually-hidden" for="taskDue">Due date</label>
+          <input id="taskDue" name="due_date" type="date" aria-label="Due date">
+          <label class="visually-hidden" for="taskPriority">Priority</label>
+          <select id="taskPriority" name="priority" aria-label="Priority">
+            <option value="medium">Medium</option><option value="high">High</option><option value="low">Low</option>
+          </select>
+          <button class="primary-button" type="submit"><span aria-hidden="true">＋</span> Add task</button>
+        </form>
+        <p class="form-feedback" id="taskFeedback" role="status"></p>
+        <div class="list-heading"><h2>Task list</h2><span id="taskListCount">0 items</span></div>
+        <ul class="record-list" id="taskList"></ul>
+      </section>
+
+      <section class="view-panel" id="view-memories" aria-labelledby="memoriesHeading" hidden>
+        <div class="section-intro compact-intro">
+          <div class="section-kicker">THINGS WORTH KEEPING <span>03</span></div>
+          <h1 id="memoriesHeading">Your memory.</h1>
+          <p>Save useful details for the next time you need them.</p>
+        </div>
+        <form class="memory-form" id="memoryForm">
+          <label class="visually-hidden" for="memoryContent">Memory to save</label>
+          <textarea id="memoryContent" rows="3" maxlength="4000" placeholder="A preference, project note, or useful detail..." required></textarea>
+          <div class="memory-form-footer"><span>Saved on this device</span><button class="primary-button" type="submit">Save memory <span aria-hidden="true">↗</span></button></div>
+        </form>
+        <form class="search-form" id="memorySearchForm">
+          <label class="visually-hidden" for="memorySearch">Search memories</label>
+          <input id="memorySearch" type="search" placeholder="Search saved memories">
+          <button class="quiet-button" type="submit">Search</button>
+          <button class="quiet-button" id="clearMemorySearch" type="button">Show all</button>
+        </form>
+        <div class="list-heading"><h2>Saved memories</h2><span id="memoryListCount">0 items</span></div>
+        <ul class="record-list memory-list" id="memoryList"></ul>
+      </section>
+
+      <section class="view-panel" id="view-documents" aria-labelledby="documentsHeading" hidden>
+        <div class="section-intro compact-intro">
+          <div class="section-kicker">FIND THE THREAD <span>04</span></div>
+          <h1 id="documentsHeading">Document notes.</h1>
+          <p>Get a concise summary of a text or Markdown file.</p>
+        </div>
+        <form class="document-form" id="documentForm">
+          <label class="upload-area" for="documentFile">
+            <span class="upload-symbol" aria-hidden="true">＋</span>
+            <strong id="fileName">Choose a TXT or Markdown file</strong>
+            <small>UTF-8 · up to 1 MB</small>
+          </label>
+          <input class="visually-hidden" id="documentFile" name="file" type="file" accept=".txt,.md,text/plain,text/markdown" required>
+          <button class="primary-button" type="submit">Summarize <span aria-hidden="true">↗</span></button>
+        </form>
+        <p class="privacy-disclosure">The selected document is sent to this app for processing. When running locally, its summary is generated by your local Ollama model.</p>
+        <div class="summary-result" id="summaryResult" aria-live="polite" hidden></div>
+      </section>
+      <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    </main>
+  </div>
+</body>
+</html>

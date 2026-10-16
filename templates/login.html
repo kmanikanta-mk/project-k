@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f4f6ef">
+  <title>Sign in | Stillroom</title>
+  <link rel="stylesheet" href="{{ url_for('static', path='/style.css') }}">
+</head>
+<body class="login-page">
+  <main class="login-panel">
+    <a class="brand login-brand" href="/">
+      <span class="brand-mark" aria-hidden="true">S</span>
+      <span><strong>stillroom</strong><small>your private desk</small></span>
+    </a>
+    <div class="section-kicker">PRIVATE WORKSPACE <span>01</span></div>
+    <h1>Welcome<br>back.</h1>
+    <p class="login-copy">Sign in to continue to your workspace.</p>
+    <form class="login-form" method="post" action="{{ url_for('login') }}">
+      <label for="password">Workspace password</label>
+      <input id="password" name="password" type="password" autocomplete="current-password" required autofocus>
+      {% if error %}<p class="login-error" role="alert">{{ error }}</p>{% endif %}
+      <button class="primary-button" type="submit">Sign in <span aria-hidden="true">↗</span></button>
+    </form>
+  </main>
+</body>
+</html>
